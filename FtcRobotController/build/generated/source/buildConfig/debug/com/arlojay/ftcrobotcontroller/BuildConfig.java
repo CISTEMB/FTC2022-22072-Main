@@ -8,5 +8,5 @@ public final class BuildConfig {
   public static final String LIBRARY_PACKAGE_NAME = "com.arlojay.ftcrobotcontroller";
   public static final String BUILD_TYPE = "debug";
   // Field from default config.
-  public static final String APP_BUILD_TIME = "2022-09-22T19:57:20.313-0500";
+  public static final String APP_BUILD_TIME = "2022-09-27T19:46:23.250-0500";
 }

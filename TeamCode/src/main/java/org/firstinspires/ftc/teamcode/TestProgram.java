@@ -29,72 +29,86 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 
-/**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When a selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
-
-@TeleOp(name="TestProgram", group="Linear Opmode")
+@TeleOp(name="TestProgram", group="Iterative Opmode")
 //@Disabled
-public class TestProgram extends LinearOpMode {
+public class TestProgram extends OpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
 
-    private double currentSpeed = 1.0d;
+    private double leftMotorSpeed = 0.0d;
+    private double rightMotorSpeed = 0.0d;
+    private float maxRobotSpeed = 1.0f;
+    private float turnSensitivity = 1.0f;
+    private float controllerDeadZone = 0.05f;
 
     @Override
-    public void runOpMode() {
-        // this is a great comment
+    public void init() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
+//        Get references to the external motors
         leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
 //        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
+//        Set the motor rotation direction (Set left motor to reverse because they're pointing in opposite directions)
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        //rightDrive.setDirection(DcMotor.Direction.FORWARD);
+//        rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        // Wait for the game to start (driver presses PLAY)
-        waitForStart();
-        runtime.reset();
-
-        setMotorSpeed(1.0d);
-
-        // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) idle();
-
-        setMotorSpeed(0.0d);
+//        Causes the motors to stop itself when no power is being applied
+        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    private void setMotorSpeed(double speed) {
-        leftDrive.setPower(speed);
-        //rightDrive.setPower(speed);
+    @Override
+    public void start() {
+        runtime.reset();
 
-        currentSpeed = speed;
+//        Make motors run at full speed on robot start
+        setMotorSpeed(1.0d, 1.0d);
+    }
+
+    @Override
+    public void loop() {
+        float forwardVelocity = gamepad1.left_stick_y;
+        if(forwardVelocity > maxRobotSpeed) forwardVelocity = maxRobotSpeed;
+        if(forwardVelocity < -maxRobotSpeed) forwardVelocity = -maxRobotSpeed;
+
+
+        if(gamepad1.right_stick_x > controllerDeadZone) {
+//            Turning right
+            setMotorSpeed(forwardVelocity, forwardVelocity * (1f - gamepad1.right_stick_x * turnSensitivity));
+
+        } else if(gamepad1.right_stick_x < -controllerDeadZone) {
+//            Turning left
+            setMotorSpeed(forwardVelocity * (1f - gamepad1.right_stick_x * turnSensitivity), forwardVelocity);
+
+        }
+    }
+
+    @Override
+    public void stop() {
+        setMotorSpeed(0.0d, 0.0d);
+    }
+
+//    Sets the speed of both motors connected
+    private void setMotorSpeed(double leftSpeed, double rightSpeed) {
+        leftDrive.setPower(leftSpeed);
+        //rightDrive.setPower(rightSpeed);
+
+        leftMotorSpeed = leftSpeed;
+        rightMotorSpeed = rightSpeed;
     }
 }
