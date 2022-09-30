@@ -29,14 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+import com.vuforia.Vec2F;
 
 
 @TeleOp(name="TestProgram", group="Iterative Opmode")
@@ -47,10 +44,11 @@ public class TestProgram extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
+    private Vec2F joystick = new Vec2F();
 
     private double leftMotorSpeed = 0.0d;
     private double rightMotorSpeed = 0.0d;
-    private float maxRobotSpeed = 1.0f;
+    private float robotSpeed = 1.0f;
     private float turnSensitivity = 1.0f;
     private float controllerDeadZone = 0.05f;
 
@@ -61,40 +59,67 @@ public class TestProgram extends OpMode {
 
 //        Get references to the external motors
         leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-//        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
 //        Set the motor rotation direction (Set left motor to reverse because they're pointing in opposite directions)
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
-//        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
 //        Causes the motors to stop itself when no power is being applied
-        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     @Override
     public void start() {
         runtime.reset();
 
-//        Make motors run at full speed on robot start
-        setMotorSpeed(1.0d, 1.0d);
+//        Reset motor speed
+        setMotorSpeed(0.0d, 0.0d);
     }
+
+
 
     @Override
     public void loop() {
-        float forwardVelocity = gamepad1.left_stick_y;
-        if(forwardVelocity > maxRobotSpeed) forwardVelocity = maxRobotSpeed;
-        if(forwardVelocity < -maxRobotSpeed) forwardVelocity = -maxRobotSpeed;
+        float xPos = gamepad1.left_stick_x;
+        float yPos = gamepad1.left_stick_y;
 
+        double d = Math.sqrt(Math.pow(xPos, 2) + Math.pow(yPos, 2)); //Distance to joystick
+        double ar = Math.atan2(yPos, xPos); //Angle radians
+        double ad = ar * (180d / Math.PI); //Angle degrees
 
-        if(gamepad1.right_stick_x > controllerDeadZone) {
-//            Turning right
-            setMotorSpeed(forwardVelocity, forwardVelocity * (1f - gamepad1.right_stick_x * turnSensitivity));
+        double dx = 0d;
+        double dy = 0d;
 
-        } else if(gamepad1.right_stick_x < -controllerDeadZone) {
-//            Turning left
-            setMotorSpeed(forwardVelocity * (1f - gamepad1.right_stick_x * turnSensitivity), forwardVelocity);
+        if(ad >= 270 || ad < 90) {
+//            Forward
 
+            double turn = 0;
+            if(ad >= 270) turn = 360d - ad;
+            if(ad <  90 ) turn = ad;
+            turn *= turnSensitivity;
+
+            dx = turn / 90d;
+            dy = d * robotSpeed;
+        } else {
+//            Backward
+
+            double turn = ad - 180d;
+            turn *= turnSensitivity;
+
+            dx = turn / 90d;
+            dy = -d * robotSpeed;
+        }
+
+        if(dx > controllerDeadZone) {
+            setMotorSpeed(dy, dy * (1d - dx));
+        } else if(dx < -controllerDeadZone) {
+            setMotorSpeed(dy * (1d + dx), dy);
+        } else if(Math.abs(dy) > controllerDeadZone) {
+            setMotorSpeed(dy, dy);
+        } else {
+            setMotorSpeed(0d, 0d);
         }
     }
 
@@ -103,10 +128,15 @@ public class TestProgram extends OpMode {
         setMotorSpeed(0.0d, 0.0d);
     }
 
+    private void updateJoystick() {
+
+
+    }
+
     //    Sets the speed of both motors connected
     private void setMotorSpeed(double leftSpeed, double rightSpeed) {
         leftDrive.setPower(leftSpeed);
-        //rightDrive.setPower(rightSpeed);
+        rightDrive.setPower(rightSpeed);
 
         leftMotorSpeed = leftSpeed;
         rightMotorSpeed = rightSpeed;
