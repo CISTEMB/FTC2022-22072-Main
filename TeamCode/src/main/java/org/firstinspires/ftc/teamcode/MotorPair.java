@@ -1,4 +1,7 @@
 package org.firstinspires.ftc.teamcode;
+import android.os.Handler;
+import android.os.Looper;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -40,5 +43,49 @@ public class MotorPair {
         setSpeed(leftSpeed, rightSpeed);
         telemetry.addData("leftMotor", leftSpeed);
         telemetry.addData("rightMotor", rightSpeed);
+    }
+
+    public void waitForMotorsToStop(Runnable callback) {
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final Runnable runnable = () -> {
+            if(isMoving()) return;
+            callback.run();
+            handler.removeCallbacksAndMessages(null);
+        };
+
+//        Hot reload to check if robot is stopped
+        handler.postDelayed(runnable, 10);
+    }
+    public void moveCounts(int leftCount, int rightCount) {
+        left.setTargetPosition(left.getTargetPosition() + leftCount);
+        right.setTargetPosition(right.getTargetPosition() + rightCount);
+    }
+    public void setCounts(int leftCount, int rightCount) {
+        left.setTargetPosition(leftCount);
+        right.setTargetPosition(rightCount);
+    }
+
+    public int getLeftCounts() {
+        return left.getCurrentPosition();
+    }
+    public int getRightCounts() {
+        return right.getCurrentPosition();
+    }
+
+    public int getLeftCountTarget() {
+        return left.getTargetPosition();
+    }
+    public int getRightCountTarget() {
+        return right.getTargetPosition();
+    }
+
+    public boolean isMoving() {
+        return left.isBusy() || right.isBusy();
+    }
+    public boolean isLeftMoving() {
+        return left.isBusy();
+    }
+    public boolean isRightMoving() {
+        return right.isBusy();
     }
 }
