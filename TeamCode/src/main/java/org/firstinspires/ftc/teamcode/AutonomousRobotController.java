@@ -30,7 +30,12 @@ public class AutonomousRobotController {
             callback.run();
         });
     }
+    private float mod(float a, float b) {
+        return (a % b + b) % b;
+    }
     private void rotate(float delta, Runnable callback) {
+        delta = mod((float)(delta + Math.PI / 2), (float)(Math.PI * 2)) - (float)(Math.PI / 2);
+
         float wheelRotationDistance = ((float)Math.PI * wheelDistance) * delta / (2 * (float)Math.PI);
         int rotations = Math.round(wheelRotationDistance / unitsPerRotation);
 
@@ -40,19 +45,33 @@ public class AutonomousRobotController {
         });
     }
 
-    public void moveTo(float x, float y) {
+    private void moveX(float distance, Runnable callback) {
+        float targetDirection = 0;
+        if(distance > 0) {
+            targetDirection = (float)(Math.PI *  (1d/2d));
+        } else {
+            targetDirection = (float)(Math.PI * -(1d/2d));
+        }
+
+        float turnDelta = currentRotation - targetDirection;
+        rotate(turnDelta, () -> moveForward(distance, callback));
+    }
+    private void moveY(float distance, Runnable callback) {
+        float targetDirection = 0;
+        if(distance > 0) {
+            targetDirection = 0f;
+        } else {
+            targetDirection = (float)Math.PI;
+        }
+
+        float turnDelta = currentRotation - targetDirection;
+        rotate(turnDelta, () -> moveForward(distance, callback));
+    }
+
+    public void moveTo(float x, float y, Runnable callback) {
         float dx = currentX - x;
         float dy = currentY - y;
 
-        float targetDirection = 0f;
-
-        if(dx > 0) {
-            targetDirection = (float)Math.PI / 2f;
-        } else {
-            targetDirection = (float)Math.PI / -2f;
-        }
-        if(dy > 0) {
-            targetDirection += 0; //TODO
-        }
+        moveX(dx, () -> moveY(dy, callback));
     }
 }
