@@ -3,6 +3,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -12,6 +13,7 @@ public class MotorPair {
 
     private DcMotor left;
     private DcMotor right;
+    private Logger logger;
 
     public MotorPair(DcMotor leftMotor, DcMotor rightMotor) {
         left = leftMotor;
@@ -22,8 +24,11 @@ public class MotorPair {
         right.setDirection(DcMotor.Direction.FORWARD);
 
 //        Causes the motors to stop itself when no power is being applied
-        left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
+
+    private void tryLog(String text) {
+        if(logger == null) return;
+        logger.log(text);
     }
 
     //    Sets the speed of both motors connected
@@ -39,30 +44,24 @@ public class MotorPair {
         leftMotorSpeed = leftSpeed;
         rightMotorSpeed = rightSpeed;
     }
-    public void setSpeed(double leftSpeed, double rightSpeed, Telemetry telemetry) {
-        setSpeed(leftSpeed, rightSpeed);
-        telemetry.addData("leftMotor", leftSpeed);
-        telemetry.addData("rightMotor", rightSpeed);
-    }
 
-    public void waitForMotorsToStop(Runnable callback) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        final Runnable runnable = () -> {
-            if(isMoving()) return;
-            callback.run();
-            handler.removeCallbacksAndMessages(null);
-        };
-
-//        Hot reload to check if robot is stopped
-        handler.postDelayed(runnable, 10);
-    }
     public void moveCounts(int leftCount, int rightCount) {
         left.setTargetPosition(left.getTargetPosition() + leftCount);
         right.setTargetPosition(right.getTargetPosition() + rightCount);
+        setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
     public void setCounts(int leftCount, int rightCount) {
         left.setTargetPosition(leftCount);
         right.setTargetPosition(rightCount);
+        setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    public void debug(Telemetry telemetry) {
+        telemetry.addData("L_TGT", left.getTargetPosition());
+        telemetry.addData("L_POS", left.getCurrentPosition());
+
+        telemetry.addData("R_TGT", right.getTargetPosition());
+        telemetry.addData("R_POS", right.getCurrentPosition());
     }
 
     public int getLeftCounts() {
@@ -87,5 +86,18 @@ public class MotorPair {
     }
     public boolean isRightMoving() {
         return right.isBusy();
+    }
+
+    public void setMode(DcMotor.RunMode encoderMode) {
+        left.setMode(encoderMode);
+        right.setMode(encoderMode);
+    }
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
+        left.setZeroPowerBehavior(behavior);
+        right.setZeroPowerBehavior(behavior);
+    }
+
+    public void setLogger(Logger _logger) {
+        logger = _logger;
     }
 }

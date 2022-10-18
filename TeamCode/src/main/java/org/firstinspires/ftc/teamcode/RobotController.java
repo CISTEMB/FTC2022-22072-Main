@@ -6,7 +6,7 @@ public class RobotController {
     private final MotorPair motors;
 
     public double forwardSpeed = 1d;
-    public double turnSpeed = 0.5d;
+    public double turnSpeed = 1d;
     public RobotController(MotorPair motorPair) {
         motors = motorPair;
     }
@@ -29,7 +29,7 @@ public class RobotController {
         if(ad < 0) {
 //            Forward
 
-            turn = ad + 90d;
+            turn = -ad - 90d;
             turn *= turnSpeed;
 
             dx = turn / 90d;
@@ -37,7 +37,7 @@ public class RobotController {
         } else {
 //            Backward
 
-            turn = -(ad - 90d);
+            turn = (-ad + 90d);
             turn *= turnSpeed;
 
             dx = turn / 90d;
@@ -50,19 +50,19 @@ public class RobotController {
 
         if(dx > 0) {
 //            Turn right
-            motors.setSpeed(dy, dy * (1d - dx), telemetry);
+            motors.setSpeed(dy, dy * (1d - dx));
 
         } else if(dx < 0) {
 //            Turn left
-            motors.setSpeed(dy * (1d + dx), dy, telemetry);
+            motors.setSpeed(dy * (1d + dx), dy);
 
         } else if(Math.abs(dy) > 0) {
 //            Move straight forward
-            motors.setSpeed(dy, dy, telemetry);
+            motors.setSpeed(dy, dy);
 
         } else {
 //            Stop
-            motors.setSpeed(0d, 0d, telemetry);
+            motors.setSpeed(0d, 0d);
 
         }
     }

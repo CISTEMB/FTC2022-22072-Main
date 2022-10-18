@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@TeleOp(name="TestProgram", group="Iterative Opmode")
+@TeleOp(name="Driver Control", group="Iterative Opmode")
 public class DriverControl extends OpMode {
 
     // Declare OpMode members.
@@ -28,6 +28,7 @@ public class DriverControl extends OpMode {
                 hardwareMap.get(DcMotor.class, "right_drive")
         );
         controller = new RobotController(motors);
+        motors.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     @Override
