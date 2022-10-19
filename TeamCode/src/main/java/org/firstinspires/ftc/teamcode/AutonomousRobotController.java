@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.os.Looper;
-
 import androidx.annotation.Nullable;
 
 import java.util.Timer;
@@ -13,10 +11,13 @@ public class AutonomousRobotController {
     protected float currentY = 0f;
     protected float currentRotation = 0f;
 
+//    Virtual "units" are centimeters irl
     private final float wheelDiameter = 9f;
     private final float wheelDistance = 36.7f;
-    private final float motorRatio = 1f / 20f;
-    private final float unitsPerRotation = (wheelDiameter * (float)Math.PI) * motorRatio;
+//                       counts per rev / gear ratio
+    private final float countsPerRev = 20f;
+    private final float unitsPerCount = ((float)Math.PI * wheelDiameter) / countsPerRev;
+    private final float countsPerUnit = 1f / unitsPerCount;
     private Logger logger;
 
 
@@ -53,7 +54,7 @@ public class AutonomousRobotController {
 
     public void moveForward(float distance, float speed, Runnable callback) {
         tryLog("moveForward " + distance);
-        int rotations = Math.round(distance / unitsPerRotation);
+        int rotations = Math.round(distance / countsPerUnit);
         motors.setSpeed(speed, speed);
         motors.moveCounts(rotations, rotations);
 
@@ -74,7 +75,7 @@ public class AutonomousRobotController {
         delta = mod((float)(delta + Math.PI / 2), (float)(Math.PI * 2)) - (float)(Math.PI / 2);
 
         float wheelRotationDistance = ((float)Math.PI * wheelDistance) * delta / (2 * (float)Math.PI);
-        int rotations = Math.round(wheelRotationDistance / unitsPerRotation);
+        int rotations = Math.round(wheelRotationDistance / countsPerUnit);
 
         motors.moveCounts(rotations, -rotations);
         if(rotations > 0) {

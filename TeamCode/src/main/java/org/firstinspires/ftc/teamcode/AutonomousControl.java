@@ -88,8 +88,8 @@ public class AutonomousControl extends OpMode {
         telemetry.addData("Status", running ? "Executing Path" : "Awaiting Input");
         telemetry.addData("Target X", targetX);
         telemetry.addData("Target Y", targetY);
-        telemetry.addData("Left Speed", motors.leftMotorSpeed);
-        telemetry.addData("Right Speed", motors.rightMotorSpeed);
+        telemetry.addData("Left Speed", motors.leftMotorPower);
+        telemetry.addData("Right Speed", motors.rightMotorPower);
 
         motors.debug(telemetry);
         logger.update();

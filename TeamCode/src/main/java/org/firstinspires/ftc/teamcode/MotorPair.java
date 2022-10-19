@@ -1,6 +1,4 @@
 package org.firstinspires.ftc.teamcode;
-import android.os.Handler;
-import android.os.Looper;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -8,8 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class MotorPair {
-    protected double leftMotorSpeed = 0d;
-    protected double rightMotorSpeed = 0d;
+    protected double leftMotorPower = 0d;
+    protected double rightMotorPower = 0d;
 
     private DcMotor left;
     private DcMotor right;
@@ -32,17 +30,17 @@ public class MotorPair {
     }
 
     //    Sets the speed of both motors connected
-    public void setSpeed(double leftSpeed, double rightSpeed) {
-        if(leftSpeed > 1d) leftSpeed = 1d;
-        if(leftSpeed < -1d) leftSpeed = -1d;
-        if(rightSpeed > 1d) rightSpeed = 1d;
-        if(rightSpeed < -1d) rightSpeed = -1d;
+    public void setSpeed(double leftPower, double rightPower) {
+        if(leftPower > 1d) leftPower = 1d;
+        if(leftPower < -1d) leftPower = -1d;
+        if(rightPower > 1d) rightPower = 1d;
+        if(rightPower < -1d) rightPower = -1d;
 
-        left.setPower(leftSpeed);
-        right.setPower(rightSpeed);
+        left.setPower(leftPower);
+        right.setPower(rightPower);
 
-        leftMotorSpeed = leftSpeed;
-        rightMotorSpeed = rightSpeed;
+        leftMotorPower = leftPower;
+        rightMotorPower = rightPower;
     }
 
     public void moveCounts(int leftCount, int rightCount) {
