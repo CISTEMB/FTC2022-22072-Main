@@ -68,6 +68,8 @@ public class AutonomousControl extends OpMode {
 
         gamepadController.pressButtonDU(() -> controller.moveForward(100, 1, () -> {}));
         gamepadController.pressButtonDD(() -> controller.moveForward(-100, 1, () -> {}));
+        gamepadController.pressButtonDL(() -> controller.moveForward(100, 1, () -> {}));
+        gamepadController.pressButtonDR(() -> controller.moveForward(-100, 1, () -> {}));
 
         logger.log("Init complete");
     }
@@ -75,7 +77,7 @@ public class AutonomousControl extends OpMode {
     @Override
     public void start() {
         logger.log("Starting");
-        motors.setSpeed(0.0d, 0.0d);
+        motors.setSpeed(0.0, 0.0);
 
         logger.log("Start complete");
     }

@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class MotorPair {
-    protected double leftMotorPower = 0d;
-    protected double rightMotorPower = 0d;
+    protected double leftMotorPower = 0.0;
+    protected double rightMotorPower = 0.0;
 
     private DcMotor left;
     private DcMotor right;
@@ -31,10 +31,10 @@ public class MotorPair {
 
     //    Sets the speed of both motors connected
     public void setSpeed(double leftPower, double rightPower) {
-        if(leftPower > 1d) leftPower = 1d;
-        if(leftPower < -1d) leftPower = -1d;
-        if(rightPower > 1d) rightPower = 1d;
-        if(rightPower < -1d) rightPower = -1d;
+        if(leftPower > 1.0) leftPower = 1.0;
+        if(leftPower < -1.0) leftPower = -1.0;
+        if(rightPower > 1.0) rightPower = 1.0;
+        if(rightPower < -1.0) rightPower = -1.0;
 
         left.setPower(leftPower);
         right.setPower(rightPower);
@@ -42,16 +42,25 @@ public class MotorPair {
         leftMotorPower = leftPower;
         rightMotorPower = rightPower;
     }
+    public void setSpeed(double power) {
+        setSpeed(power, power);
+    }
 
     public void moveCounts(int leftCount, int rightCount) {
         left.setTargetPosition(left.getTargetPosition() + leftCount);
         right.setTargetPosition(right.getTargetPosition() + rightCount);
         setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
+    public void moveCounts(int counts) {
+        moveCounts(counts, counts);
+    }
     public void setCounts(int leftCount, int rightCount) {
         left.setTargetPosition(leftCount);
         right.setTargetPosition(rightCount);
         setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+    public void setCounts(int counts) {
+        setCounts(counts, counts);
     }
 
     public void debug(Telemetry telemetry) {

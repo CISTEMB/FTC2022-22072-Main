@@ -48,18 +48,18 @@ public class AutonomousRobotController {
                 callback.run();
             }
         };
-        
+
         timer.scheduleAtFixedRate(task,0,10);
     }
 
     public void moveForward(float distance, float speed, Runnable callback) {
         tryLog("moveForward " + distance);
         int rotations = Math.round(distance / countsPerUnit);
-        motors.setSpeed(speed, speed);
-        motors.moveCounts(rotations, rotations);
+        motors.setSpeed(speed);
+        motors.moveCounts(rotations);
 
         waitForMotorStop(() -> {
-            motors.setSpeed(0d, 0d);
+            motors.setSpeed(0.0, 0.0);
 
 //        There will be some error because of float-to-int rounding, so we
 //        take that into consideration when changing the position of the robot
@@ -77,15 +77,12 @@ public class AutonomousRobotController {
         float wheelRotationDistance = ((float)Math.PI * wheelDistance) * delta / (2 * (float)Math.PI);
         int rotations = Math.round(wheelRotationDistance / countsPerUnit);
 
+        motors.setSpeed(speed);
+
         motors.moveCounts(rotations, -rotations);
-        if(rotations > 0) {
-            motors.setSpeed(speed, -speed);
-        } else {
-            motors.setSpeed(-speed, speed);
-        }
 
         waitForMotorStop(() -> {
-            motors.setSpeed(0d, 0d);
+            motors.setSpeed(0.0, 0.0);
             currentRotation += wheelRotationDistance;
             callback.run();
         });
@@ -96,9 +93,9 @@ public class AutonomousRobotController {
 
         float targetDirection = 0;
         if(distance > 0) {
-            targetDirection = (float)(Math.PI *  (1d/2d));
+            targetDirection = (float)(Math.PI *  (1.0/2.0));
         } else {
-            targetDirection = (float)(Math.PI * -(1d/2d));
+            targetDirection = (float)(Math.PI * -(1.0/2.0));
         }
 
         float turnDelta = currentRotation - targetDirection;
