@@ -18,10 +18,15 @@ public class MotorPair {
         right = rightMotor;
 
 //        Set the motor rotation direction (Set left motor to reverse because they're pointing in opposite directions)
-        left.setDirection(DcMotor.Direction.REVERSE);
-        right.setDirection(DcMotor.Direction.FORWARD);
+        left.setDirection(DcMotor.Direction.FORWARD);
+        right.setDirection(DcMotor.Direction.REVERSE);
+    }
 
-//        Causes the motors to stop itself when no power is being applied
+    public DcMotor getLeftMotor() {
+        return left;
+    }
+    public DcMotor getRightMotor() {
+        return right;
     }
 
     private void tryLog(String text) {

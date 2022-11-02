@@ -68,8 +68,8 @@ public class AutonomousControl extends OpMode {
 
         gamepadController.pressButtonDU(() -> controller.moveForward(100, 1, () -> {}));
         gamepadController.pressButtonDD(() -> controller.moveForward(-100, 1, () -> {}));
-        gamepadController.pressButtonDL(() -> controller.moveForward(100, 1, () -> {}));
-        gamepadController.pressButtonDR(() -> controller.moveForward(-100, 1, () -> {}));
+        gamepadController.pressButtonDL(() -> controller.rotate((float)Math.PI/2, 1, () -> {}));
+        gamepadController.pressButtonDR(() -> controller.rotate(-(float)Math.PI/2, 1, () -> {}));
 
         logger.log("Init complete");
     }

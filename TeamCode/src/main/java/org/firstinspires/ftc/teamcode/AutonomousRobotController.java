@@ -14,11 +14,16 @@ public class AutonomousRobotController {
 //    Virtual "units" are centimeters irl
     private final float wheelDiameter = 9f;
     private final float wheelDistance = 36.7f;
-//                       counts per rev / gear ratio
-    private final float countsPerRev = 20f;
+//                             motor counts per rev / gear ratio
+    private final float countsPerRev = (20f * 360f) / 1f;
     private final float unitsPerCount = ((float)Math.PI * wheelDiameter) / countsPerRev;
     private final float countsPerUnit = 1f / unitsPerCount;
     private Logger logger;
+
+
+    /*
+
+     */
 
 
     public AutonomousRobotController(MotorPair pair) {
