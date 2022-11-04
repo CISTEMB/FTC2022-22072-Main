@@ -112,4 +112,8 @@ public class MotorPair {
     public void setLogger(Logger _logger) {
         logger = _logger;
     }
+
+    public void reset() {
+        setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
 }

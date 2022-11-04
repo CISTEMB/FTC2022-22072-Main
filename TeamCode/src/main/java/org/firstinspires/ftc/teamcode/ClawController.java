@@ -20,7 +20,7 @@ public class ClawController extends OpMode {
 
         liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        clawServo.
-    }
+    } //TODO: fix claw grip angle limits
 
     private double lerp(double v1, double v2, double t) {
         return v1 + (v2 - v1) * t;
