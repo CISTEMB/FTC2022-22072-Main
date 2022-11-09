@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
+import com.qualcomm.hardware.motors.RevRoboticsCoreHexMotor;
 import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -60,6 +61,7 @@ public class DriverControl extends OpMode {
 
 //        Reset motor speed
         motors.setSpeed(0.0d, 0.0d);
+        motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     @Override
@@ -67,8 +69,8 @@ public class DriverControl extends OpMode {
         if (!hasReset) {
             telemetry.addLine("Waiting for reset to complete...");
             telemetry.addData("pressed", resetSwitch.isPressed());
-            motors.setSpeed(0.2d, 0.2d);
-            motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            liftMotor.setPower(0.2d);
+            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             if (resetSwitch.isPressed()) hasReset = true;
             return;
         }
@@ -81,12 +83,15 @@ public class DriverControl extends OpMode {
         controller.update(xPos, yPos, telemetry);
 
         clawMovement(dt);
+
+        telemetry.addData("resetSwitchHigh", resetSwitch.isPressed());
     }
 
     private void clawMovement(float dt) {
 
         if(resetSwitch.isPressed()) {
-            motors.reset();
+            telemetry.addLine("SWITCH HIGH; RESETTING ENCODER");
+            liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
 
@@ -116,7 +121,7 @@ public class DriverControl extends OpMode {
         if(gamepad1.a) {
             clawServo.setPosition(1.0d);
         } else {
-            clawServo.setPosition(0.0d);
+            clawServo.setPosition(0.7d);
         }
 
         telemetry.addData("RJy", gamepad1.right_stick_y);

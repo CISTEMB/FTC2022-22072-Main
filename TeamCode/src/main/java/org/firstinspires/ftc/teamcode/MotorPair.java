@@ -114,6 +114,7 @@ public class MotorPair {
     }
 
     public void reset() {
+        setCounts(0, 0);
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 }
