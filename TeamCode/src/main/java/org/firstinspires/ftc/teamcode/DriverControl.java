@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
-import com.qualcomm.hardware.motors.RevRoboticsCoreHexMotor;
 import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -16,13 +14,16 @@ public class DriverControl extends OpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private RobotController controller;
+    private GamepadRobotController controller;
     private MotorPair motors;
 
-    private float robotSpeed = 1.0f;
+    private double defaultRobotAdjustment = 0.8; //100 percent of possible speed
+    private double sensitiveRobotAdjustment = 0.4; //80 percent of possible speed
     private float turnSensitivity = 1.0f;
     private float clawVerticalPosition = 0.0f;
     private float clawSpeed = 0.5f; //2 seconds to go up and down
+    private ToggleBoolean sensitiveRobot = new ToggleBoolean(false);
+    private ToggleBoolean clawOpen = new ToggleBoolean(false);
 
     private long lastSample = 0;
     private double maxClawHeight = 2350;
@@ -51,7 +52,7 @@ public class DriverControl extends OpMode {
         resetSwitch = hardwareMap.get(RevTouchSensor.class, "reset_switch");
         liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
         clawServo = hardwareMap.get(Servo.class, "claw_grip");
-        controller = new RobotController(motors);
+        controller = new GamepadRobotController(motors);
         motors.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
@@ -62,10 +63,19 @@ public class DriverControl extends OpMode {
 //        Reset motor speed
         motors.setSpeed(0.0d, 0.0d);
         motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        sensitiveRobot.on("switchTrue", () -> controller.setForwardSpeed(sensitiveRobotAdjustment));
+        sensitiveRobot.on("switchFalse", () -> controller.setForwardSpeed(defaultRobotAdjustment));
+        clawOpen.on("switchTrue", () -> clawServo.setPosition(0.7d));
+        clawOpen.on("switchFalse", () -> clawServo.setPosition(1.0d));
     }
 
     @Override
     public void loop() {
+        telemetry.addData("SENSITIVE", sensitiveRobot.getSwitch());
+        telemetry.addData("CLAW OPEN", clawOpen.getSwitch());
+        telemetry.addData("MOVEMENT MODE", controller.getTurnMode().name());
+
         if (!hasReset) {
             telemetry.addLine("Waiting for reset to complete...");
             telemetry.addData("pressed", resetSwitch.isPressed());
@@ -77,14 +87,28 @@ public class DriverControl extends OpMode {
 
         float dt = (System.currentTimeMillis() - lastSample) / 1000f;
         lastSample = System.currentTimeMillis();
+        bodyMovement();
+        clawMovement(dt);
 
+        telemetry.addData("resetSwitchHigh", resetSwitch.isPressed());
+    }
+
+    private void bodyMovement() {
         float xPos = gamepad1.left_stick_x;
         float yPos = gamepad1.left_stick_y;
         controller.update(xPos, yPos, telemetry);
 
-        clawMovement(dt);
+        //todo:
+        // check for gamepad button being pressed
+        // toggle variable sensitive robot
+        // if robot is sensitive now, fire setForwardSpeed on the robot controller with the appropriate value
 
-        telemetry.addData("resetSwitchHigh", resetSwitch.isPressed());
+        sensitiveRobot.set(gamepad1.b);
+        if(gamepad1.right_trigger > 1d/3d) {
+            controller.setTurnMode(GamepadRobotController.MovementMode.TANK);
+        } else {
+            controller.setTurnMode(GamepadRobotController.MovementMode.CAR);
+        }
     }
 
     private void clawMovement(float dt) {
@@ -105,7 +129,7 @@ public class DriverControl extends OpMode {
 
 
         //Quick jump when stick is clicked
-        if(gamepad1.left_stick_button) {
+        if(gamepad1.right_stick_button) {
             if(gamepad1.right_stick_y > 0) {
                 clawVerticalPosition = 0f;
             }
@@ -118,11 +142,8 @@ public class DriverControl extends OpMode {
         liftMotor.setTargetPosition(-(int)lerp(minClawHeight, maxClawHeight, clawVerticalPosition));
         liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        if(gamepad1.a) {
-            clawServo.setPosition(1.0d);
-        } else {
-            clawServo.setPosition(0.7d);
-        }
+        clawOpen.set(gamepad1.a);
+
 
         telemetry.addData("RJy", gamepad1.right_stick_y);
         telemetry.addData("deltaClawMovement", deltaClawMovement);
