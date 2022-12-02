@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -13,31 +14,27 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class DriverControl extends OpMode {
 
     // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
+    private final ElapsedTime runtime = new ElapsedTime();
     private GamepadRobotController controller;
     private MotorPair motors;
 
-    private double defaultRobotAdjustment = 0.8; //100 percent of possible speed
-    private double sensitiveRobotAdjustment = 0.4; //80 percent of possible speed
-    private float turnSensitivity = 1.0f;
-    private float clawVerticalPosition = 0.0f;
-    private float clawSpeed = 0.5f; //2 seconds to go up and down
-    private ToggleBoolean sensitiveRobot = new ToggleBoolean(false);
-    private ToggleBoolean clawOpen = new ToggleBoolean(false);
+    private final double defaultRobotAdjustment = 1.0; //100 percent of possible speed
+    private final double sensitiveRobotAdjustment = 0.4; //80 percent of possible speed
+    private final ToggleBoolean clawOpen = new ToggleBoolean(false);
+    private final ToggleBoolean turnAround = new ToggleBoolean(false);
 
     private long lastSample = 0;
-    private double maxClawHeight = 2350;
-    private double minClawHeight = 0;
-
-    private double lerp(double v1, double v2, double t) {
-        return v1 + (v2 - v1) * t;
-    }
+    private final double maxClawHeight = 2350;
+    private final double minClawHeight = 0;
+    private final int flipCounts = 1100;
 
     private DcMotor liftMotor = null;
     private Servo clawServo = null;
     private TouchSensor resetSwitch = null;
 
     private boolean hasReset = false;
+    private boolean canAdjustClaw = true;
+    private boolean canMoveRobot = true;
 
     @Override
     public void init() {
@@ -53,6 +50,8 @@ public class DriverControl extends OpMode {
         liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
         clawServo = hardwareMap.get(Servo.class, "claw_grip");
         controller = new GamepadRobotController(motors);
+
+        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         motors.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
@@ -60,26 +59,33 @@ public class DriverControl extends OpMode {
     public void start() {
         runtime.reset();
 
+        motors.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
 //        Reset motor speed
         motors.setSpeed(0.0d, 0.0d);
         motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        sensitiveRobot.on("switchTrue", () -> controller.setForwardSpeed(sensitiveRobotAdjustment));
-        sensitiveRobot.on("switchFalse", () -> controller.setForwardSpeed(defaultRobotAdjustment));
         clawOpen.on("switchTrue", () -> clawServo.setPosition(0.7d));
         clawOpen.on("switchFalse", () -> clawServo.setPosition(1.0d));
+        turnAround.on("switch", () -> flip());
+
+        liftMotor.setPower(0.5);
     }
 
     @Override
     public void loop() {
-        telemetry.addData("SENSITIVE", sensitiveRobot.getSwitch());
         telemetry.addData("CLAW OPEN", clawOpen.getSwitch());
         telemetry.addData("MOVEMENT MODE", controller.getTurnMode().name());
 
+        if(runtime.milliseconds() < 1000) {
+            telemetry.addLine("Lifting claw for more leverage... ("+runtime.milliseconds()+")");
+            clawServo.setPosition(0.7d);
+            return;
+        }
         if (!hasReset) {
             telemetry.addLine("Waiting for reset to complete...");
             telemetry.addData("pressed", resetSwitch.isPressed());
-            liftMotor.setPower(0.2d);
+            liftMotor.setPower(-0.8d);
             liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             if (resetSwitch.isPressed()) hasReset = true;
             return;
@@ -93,22 +99,55 @@ public class DriverControl extends OpMode {
         telemetry.addData("resetSwitchHigh", resetSwitch.isPressed());
     }
 
+    private void flip() {
+        motors.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        motors.setSpeed(1);
+        motors.setCounts(flipCounts, -flipCounts);
+        motors.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        canMoveRobot = false;
+    }
+
     private void bodyMovement() {
         float xPos = gamepad1.left_stick_x;
         float yPos = gamepad1.left_stick_y;
-        controller.update(xPos, yPos, telemetry);
+        if(xPos != 0 || yPos != 0) {
+            canMoveRobot = true;
+            motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+        if(canMoveRobot) controller.update(xPos, yPos, telemetry);
 
         //todo:
         // check for gamepad button being pressed
         // toggle variable sensitive robot
         // if robot is sensitive now, fire setForwardSpeed on the robot controller with the appropriate value
 
-        sensitiveRobot.set(gamepad1.b);
-        if(gamepad1.right_trigger > 1d/3d) {
-            controller.setTurnMode(GamepadRobotController.MovementMode.TANK);
-        } else {
-            controller.setTurnMode(GamepadRobotController.MovementMode.CAR);
+        if(canMoveRobot) {
+            if (gamepad1.y) {
+                controller.setForwardSpeed(defaultRobotAdjustment);
+            } else {
+                controller.setForwardSpeed(sensitiveRobotAdjustment);
+            }
+            if (gamepad1.right_trigger > 1d / 3d) {
+                controller.setTurnMode(GamepadRobotController.MovementMode.TANK);
+            } else {
+                controller.setTurnMode(GamepadRobotController.MovementMode.CAR);
+            }
         }
+
+        if(gamepad1.dpad_left) {
+            motors.setSpeed(-controller.getForwardSpeed(), controller.getForwardSpeed());
+        }
+        if(gamepad1.dpad_right) {
+            motors.setSpeed(controller.getForwardSpeed(), -controller.getForwardSpeed());
+        }
+
+        turnAround.set(gamepad1.x);
+
+        telemetry.addData("Left Target", motors.getLeftCountTarget());
+        telemetry.addData("Right Target", motors.getRightCountTarget());
+        telemetry.addData("Left Pos", motors.getLeftCounts());
+        telemetry.addData("Right Pos", motors.getRightCounts());
     }
 
     private void clawMovement(float dt) {
@@ -120,34 +159,65 @@ public class DriverControl extends OpMode {
 
 
         telemetry.addData("dt", dt);
-        //Controller y position is inverted for some reason
-        float deltaClawMovement = -(gamepad1.right_stick_y * dt * clawSpeed);
-
-        clawVerticalPosition += deltaClawMovement;
-        if(clawVerticalPosition > 1) clawVerticalPosition = 1.0f;
-        if(clawVerticalPosition < 0) clawVerticalPosition = 0.0f;
 
 
         //Quick jump when stick is clicked
         if(gamepad1.right_stick_button) {
+            int target = 0xdeadbeef;
             if(gamepad1.right_stick_y > 0) {
-                clawVerticalPosition = 0f;
+                target = (int)minClawHeight;
             }
             if(gamepad1.right_stick_y < 0) {
-                clawVerticalPosition = 1f;
+                target = (int)maxClawHeight;
+            }
+            if(target != 0xdeadbeef) {
+                liftMotor.setTargetPosition(target);
+                liftMotor.setPower(1);
+                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                canAdjustClaw = false;
             }
         }
-
-        liftMotor.setPower(1.0f);
-        liftMotor.setTargetPosition(-(int)lerp(minClawHeight, maxClawHeight, clawVerticalPosition));
-        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         clawOpen.set(gamepad1.a);
 
 
+        if(gamepad1.right_stick_y < 0 && resetSwitch.isPressed()) {
+            liftMotor.setPower(0);
+        }
+
+        if(
+                gamepad1.right_stick_y != 0
+                && canAdjustClaw
+                && liftMotor.getCurrentPosition() < maxClawHeight + 10
+                && liftMotor.getCurrentPosition() > minClawHeight - 10
+        ) {
+            liftMotor.setPower(-gamepad1.right_stick_y);
+            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+
+
+
+        if(gamepad1.right_stick_y == 0) canAdjustClaw = true;
+        if(liftMotor.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
+            if(gamepad1.right_stick_y == 0) liftMotor.setPower(0);
+
+            if(liftMotor.getCurrentPosition() >= maxClawHeight) {
+                liftMotor.setPower(-0.1);
+                telemetry.addLine("STOP! IMMINENT STRIPPING OF GEAR DETECTED");
+            }
+            if(liftMotor.getCurrentPosition() <= minClawHeight) {
+                liftMotor.setPower(0.1);
+            }
+        }
+
+        liftMotor.setZeroPowerBehavior(
+            liftMotor.getMode() == DcMotor.RunMode.RUN_USING_ENCODER ?
+            DcMotor.ZeroPowerBehavior.BRAKE :
+            DcMotor.ZeroPowerBehavior.FLOAT
+        );
+
         telemetry.addData("RJy", gamepad1.right_stick_y);
-        telemetry.addData("deltaClawMovement", deltaClawMovement);
-        telemetry.addData("clawVerticalPosition", clawVerticalPosition);
+//        telemetry.addData("deltaClawMovement", deltaClawMovement);
         telemetry.addData("clawRealPos", liftMotor.getCurrentPosition());
         telemetry.addData("clawRealTarget", liftMotor.getTargetPosition());
     }

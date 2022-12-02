@@ -17,6 +17,9 @@ public class GamepadRobotController {
     public void setForwardSpeed(double speed) {
         forwardSpeed = speed;
     }
+    public double getForwardSpeed() {
+        return forwardSpeed;
+    }
 
 
     public enum MovementMode { TANK, CAR }

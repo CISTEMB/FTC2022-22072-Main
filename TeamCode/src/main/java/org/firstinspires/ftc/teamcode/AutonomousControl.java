@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp(name="Autonomous Control", group="Iterative Opmode")
+@Autonomous(name="[DONOTUSE] Autonomous Control", group="Iterative Opmode")
 public class AutonomousControl extends OpMode {
 
     private float targetX = 0;

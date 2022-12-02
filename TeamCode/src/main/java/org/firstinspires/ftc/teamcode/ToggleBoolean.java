@@ -11,6 +11,7 @@ public class ToggleBoolean extends EventListener {
     private void updateSwitch() {
         switchVal = !switchVal;
         invoke(switchVal ? "switchTrue" : "switchFalse");
+        invoke("switch");
     }
     public void makeTrue() {
         if(!value) {
