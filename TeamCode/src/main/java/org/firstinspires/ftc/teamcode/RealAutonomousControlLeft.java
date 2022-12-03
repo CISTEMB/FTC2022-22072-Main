@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name = "Autonomous Control (real)", group = "Iterative Opmode")
-public class RealAutonomousControl extends OpMode {
+@Autonomous(name = "LEFT Autonomous Control (real)", group = "Iterative Opmode")
+public class RealAutonomousControlLeft extends OpMode {
     private MotorPair motors;
     private DcMotor liftMotor;
     private Servo liftClaw;
@@ -15,8 +15,8 @@ public class RealAutonomousControl extends OpMode {
     @Override
     public void init() {
         motors = new MotorPair(
-                hardwareMap.get(DcMotor.class, "left_drive"),
-                hardwareMap.get(DcMotor.class, "right_drive")
+            hardwareMap.get(DcMotor.class, "left_drive"),
+            hardwareMap.get(DcMotor.class, "right_drive")
         );
         liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
         liftClaw = hardwareMap.get(Servo.class, "claw_grip");
@@ -63,7 +63,7 @@ public class RealAutonomousControl extends OpMode {
         waitms(() -> {
             telemetry.addLine("Stage 4");
             motors.setSpeed(0.15);
-            motors.moveCounts(400, -400);
+            motors.moveCounts(-400, 400);
         }, 7500);
 
         waitms(() -> {
