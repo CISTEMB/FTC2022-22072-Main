@@ -29,7 +29,7 @@ public class AutonomousPath {
     public AutonomousPath() {
         events = new ArrayList<>();
     }
-    public void execute(MotorPair wheels, DcMotor clawMotor, Servo clawServo, Runnable onComplete) {
+    public void execute(MotorPair wheels, DcMotor clawMotor, Servo clawServo, Runnable onComplete, double speedMultiplier) {
         long currentTime = 0;
 
         threads = new Thread[events.size()];
@@ -39,15 +39,17 @@ public class AutonomousPath {
             currentTime += instruction.delayTime;
 
             final long currentThreadDelay = currentTime;
+            final double mult = speedMultiplier;
 
             Thread thread = new Thread(() -> {
                 try {
-                    Thread.sleep(currentThreadDelay);
+                    Thread.sleep((long)(currentThreadDelay / mult));
                     executeInstruction(
                             instruction,
                             wheels,
                             clawMotor,
-                            clawServo
+                            clawServo,
+                            speedMultiplier
                     );
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -83,22 +85,22 @@ public class AutonomousPath {
         Arrays.stream(threads).iterator().forEachRemaining(v -> v.interrupt());
     }
 
-    private void executeInstruction(Instruction instruction, MotorPair wheels, DcMotor clawMotor, Servo clawServo) {
+    private void executeInstruction(Instruction instruction, MotorPair wheels, DcMotor clawMotor, Servo clawServo, double speedMultiplier) {
         switch (instruction.instructionType) {
             case MOVE_FORWARD:
-                wheels.setSpeed(0.5);
+                wheels.setSpeed(0.5 * speedMultiplier);
                 wheels.moveCounts((int) instruction.instructionAmount);
                 break;
             case TURN_RIGHT:
-                wheels.setSpeed(0.5);
-                wheels.moveCounts(-(int) instruction.instructionAmount, (int) instruction.instructionAmount);
-                break;
-            case TURN_LEFT:
-                wheels.setSpeed(0.5);
+                wheels.setSpeed(0.5 * speedMultiplier);
                 wheels.moveCounts((int) instruction.instructionAmount, -(int) instruction.instructionAmount);
                 break;
+            case TURN_LEFT:
+                wheels.setSpeed(0.5 * speedMultiplier);
+                wheels.moveCounts(-(int) instruction.instructionAmount, (int) instruction.instructionAmount);
+                break;
             case MOVE_CLAW:
-                clawMotor.setPower(1);
+                clawMotor.setPower(1 * speedMultiplier);
                 clawMotor.setTargetPosition((int) instruction.instructionAmount);
                 clawMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 break;

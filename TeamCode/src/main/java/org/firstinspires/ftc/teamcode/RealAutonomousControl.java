@@ -1,15 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import java.util.ArrayList;
+
 @Autonomous(name = "Autonomous Control (real)", group = "Iterative Opmode")
+@Disabled
 public class RealAutonomousControl extends OpMode {
     private MotorPair motors;
     private DcMotor liftMotor;
     private Servo liftClaw;
+    private ArrayList<Thread> threads;
 
 
     @Override
@@ -21,19 +26,40 @@ public class RealAutonomousControl extends OpMode {
         liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
         liftClaw = hardwareMap.get(Servo.class, "claw_grip");
 
+        threads = new ArrayList<>();
+
         telemetry.setAutoClear(false);
     }
 
+    private void terminateThreads()
+    {
+        telemetry.addLine(String.format("Terminating {0} threads", String.valueOf(threads.size())));
+        for (Thread thread : threads) {
+            if (thread.isAlive() && !thread.isInterrupted())
+            {
+                thread.interrupt();
+            }
+        }
+    }
+
     private void waitms(Runnable runnable, int delay){
-        new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 Thread.sleep(delay);
                 runnable.run();
             }
-            catch (Exception e){
-                System.err.println(e);
+            catch (InterruptedException e){
+                telemetry.addLine(String.format("Caught interrupted exception: {0}", e.getMessage()));
+                terminateThreads();
             }
-        }).start();
+            catch (Exception e){
+                telemetry.addLine(String.format("Caught exception: {0}", e.getMessage()));
+                terminateThreads();
+            }
+        });
+
+        t.start();
+        threads.add(t);
     }
 
     @Override

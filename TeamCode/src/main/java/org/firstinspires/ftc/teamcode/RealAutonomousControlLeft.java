@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous(name = "LEFT Autonomous Control (real)", group = "Iterative Opmode")
+@Disabled
 public class RealAutonomousControlLeft extends OpMode {
     private MotorPair motors;
     private DcMotor liftMotor;
@@ -31,6 +33,7 @@ public class RealAutonomousControlLeft extends OpMode {
                 runnable.run();
             }
             catch (Exception e){
+                telemetry.addLine(String.format("Thread exception: {0}", e.getMessage()));
                 System.err.println(e);
             }
         }).start();

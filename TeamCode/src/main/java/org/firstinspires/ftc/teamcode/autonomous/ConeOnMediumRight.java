@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MotorPair;
 
-@Autonomous(name = "Autonomous Sequenced", group = "Iterative OpMode")
-public class AutonomousSequencedController extends OpMode {
+@Autonomous(name = "Cone on medium pole (left)", group = "Sequenced Autonomous")
+public class ConeOnMediumRight extends OpMode {
     private final AutonomousPath path = new AutonomousPath();
     private MotorPair motors;
     private DcMotor liftMotor;
@@ -23,6 +24,8 @@ public class AutonomousSequencedController extends OpMode {
         liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
         liftClaw = hardwareMap.get(Servo.class, "claw_grip");
 
+        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
         telemetry.setAutoClear(false);
 
         path.scheduleClawRelease(0);
@@ -32,9 +35,8 @@ public class AutonomousSequencedController extends OpMode {
         path.scheduleLeftTurn(450, 3000);
         path.scheduleMove(100, 2000);
         path.scheduleClawRelease(500);
-        path.onBeforeEnd(() -> {
-            liftMotor.setTargetPosition(0);
-        }, 2000);
+        path.scheduleMove(-100, 500);
+        path.scheduleClawMove(0, 0);
    }
 
     @Override
@@ -47,7 +49,7 @@ public class AutonomousSequencedController extends OpMode {
     public void start() {
         path.execute(motors, liftMotor, liftClaw, () -> {
             telemetry.addLine("Execution finished");
-        });
+        }, 1);
     }
 
     @Override

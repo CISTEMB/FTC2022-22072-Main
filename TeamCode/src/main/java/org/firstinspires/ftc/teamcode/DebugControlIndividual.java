@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.RevTouchSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @TeleOp(name="Debug Control Individual", group="Iterative Opmode")
+@Disabled
 public class DebugControlIndividual extends OpMode {
     GamepadController controller = new GamepadController(gamepad1);
 

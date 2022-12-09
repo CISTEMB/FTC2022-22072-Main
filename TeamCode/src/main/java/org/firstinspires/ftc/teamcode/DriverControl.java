@@ -24,7 +24,7 @@ public class DriverControl extends OpMode {
     private final ToggleBoolean turnAround = new ToggleBoolean(false);
 
     private long lastSample = 0;
-    private final double maxClawHeight = 2350;
+    private final double maxClawHeight = 2600;
     private final double minClawHeight = 0;
     private final int flipCounts = 1100;
 
@@ -51,7 +51,7 @@ public class DriverControl extends OpMode {
         clawServo = hardwareMap.get(Servo.class, "claw_grip");
         controller = new GamepadRobotController(motors);
 
-        liftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         motors.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
@@ -76,6 +76,23 @@ public class DriverControl extends OpMode {
     public void loop() {
         telemetry.addData("CLAW OPEN", clawOpen.getSwitch());
         telemetry.addData("MOVEMENT MODE", controller.getTurnMode().name());
+
+        if(runtime.milliseconds() < 1000) {
+            telemetry.addLine("Lifting claw for more leverage... ("+runtime.milliseconds()+")");
+            clawServo.setPosition(0.7d);
+            return;
+        }
+        if (!hasReset) {
+            telemetry.addLine("Waiting for reset to complete...");
+            telemetry.addData("pressed", resetSwitch.isPressed());
+            liftMotor.setPower(-0.8d);
+            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if (resetSwitch.isPressed()) hasReset = true;
+            return;
+        }
+
+//        HAS NOT COMPILED YET
+//        UNTESTED CODE: LED LIGHT, INIT RECALIBRATION
 
         float dt = (System.currentTimeMillis() - lastSample) / 1000f;
         lastSample = System.currentTimeMillis();
@@ -102,11 +119,6 @@ public class DriverControl extends OpMode {
             motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
         if(canMoveRobot) controller.update(xPos, yPos, telemetry);
-
-        //todo:
-        // check for gamepad button being pressed
-        // toggle variable sensitive robot
-        // if robot is sensitive now, fire setForwardSpeed on the robot controller with the appropriate value
 
         if(canMoveRobot) {
             if (gamepad1.y) {
