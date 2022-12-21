@@ -1,46 +1,41 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.autonomous.AutonomousPath;
+
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
-@TeleOp(name = "Color Reader Test", group = "Iterative OpMode")
-public class ColorReader extends OpMode {
+public class ColorReader {
     private RevColorSensorV3 sensor;
 
-    @Override
-    public void init() {
-        sensor = hardwareMap.get(RevColorSensorV3.class, "color_sensor");
+    public ColorReader(RevColorSensorV3 _sensor) {
+        sensor = _sensor;
     }
 
-    @Override
-    public void loop() {
-        sensor.enableLed(true);
+    public String getColor() {
+        return detectColor(sensor.red(), sensor.green(), sensor.blue());
+    }
 
-        int[] color = new int[3];
+    private String detectColor(int red, int green, int blue) {
+        Integer[] colors = { red, green, blue };
+        Integer most = Collections.max(Arrays.asList(colors));
+        if (red == most) {
+            return "red";
+        }
 
-        color[0] = sensor.red();
-        color[1] = sensor.green();
-        color[2] = sensor.blue();
+        if (green == most) {
+            return "green";
+        }
 
-        int[] sortedColors = Arrays.copyOf(color, color.length);
-        Arrays.sort(sortedColors);
-        int maxColor = sortedColors[color.length - 1];
+        if (blue == most) {
+            return "blue";
+        }
 
-        int index = Arrays.binarySearch(sortedColors, maxColor);
-
-
-        telemetry.addData("color", "Detected color " + index);
-        telemetry.addData("color", "Absolute color [" + sensor.red() + ", " + sensor.green() + ", " + sensor.blue() + " ]");
+        return "unknown";
     }
 }

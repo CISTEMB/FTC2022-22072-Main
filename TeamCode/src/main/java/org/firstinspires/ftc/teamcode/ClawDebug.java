@@ -25,6 +25,6 @@ public class ClawDebug extends OpMode {
     public void loop() {
         liftMotor.setPower(-gamepad1.left_stick_y);
 
-        clawServo.setPosition(gamepad1.a ? 1 : 0.7);
+        clawServo.setPosition(gamepad1.a ? 1 : 0.85);
     }
 }

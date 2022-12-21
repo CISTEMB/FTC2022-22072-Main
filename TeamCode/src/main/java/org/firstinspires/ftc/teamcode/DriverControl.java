@@ -65,8 +65,8 @@ public class DriverControl extends OpMode {
         motors.setSpeed(0.0d, 0.0d);
         motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        clawOpen.on("switchTrue", () -> clawServo.setPosition(0.7d));
-        clawOpen.on("switchFalse", () -> clawServo.setPosition(1.0d));
+        clawOpen.on("switchTrue", () -> clawServo.setPosition(0.85));
+        clawOpen.on("switchFalse", () -> clawServo.setPosition(1));
         turnAround.on("switch", () -> flip());
 
         liftMotor.setPower(0.5);
@@ -79,7 +79,7 @@ public class DriverControl extends OpMode {
 
         if(runtime.milliseconds() < 1000) {
             telemetry.addLine("Lifting claw for more leverage... ("+runtime.milliseconds()+")");
-            clawServo.setPosition(0.7d);
+            clawServo.setPosition(0.85d);
             return;
         }
         if (!hasReset) {

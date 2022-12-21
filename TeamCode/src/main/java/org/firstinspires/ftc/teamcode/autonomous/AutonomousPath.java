@@ -8,56 +8,88 @@ import org.firstinspires.ftc.teamcode.MotorPair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 class Instruction {
     public AutonomousInstruction instructionType;
     public double instructionAmount;
     public long delayTime;
-    public Instruction(AutonomousInstruction type, double amount, long time) {
-        instructionType = type;
-        instructionAmount = amount;
-        delayTime = time;
+    public Instruction(AutonomousInstruction _instructionType, double _instructionAmount, long _delayTime) {
+        instructionType = _instructionType;
+        instructionAmount = _instructionAmount;
+        delayTime = _delayTime;
+    }
+}
+class IfBranch {
+    public Supplier<Boolean> decider;
+    public Consumer<InstructionBlock> ifTrue;
+    public Consumer<InstructionBlock> ifFalse;
+    public InstructionBlock trueBlock;
+    public InstructionBlock falseBlock;
+    public IfBranch(Supplier<Boolean> _decider, Consumer<InstructionBlock> _ifTrue, Consumer<InstructionBlock> _ifFalse) {
+        decider = _decider;
+        ifTrue = _ifTrue;
+        ifFalse = _ifFalse;
+
+        trueBlock = new InstructionBlock();
+        falseBlock = new InstructionBlock();
+
+        ifTrue.accept(trueBlock);
+        ifFalse.accept(trueBlock);
+    }
+    public InstructionBlock decide() {
+        if(decider.get()) {
+            return trueBlock;
+        } else {
+            return falseBlock;
+        }
     }
 }
 
-public class AutonomousPath {
-    public List<Instruction> events;
-    private Runnable beforeEndCallback;
-    private long executeBeforeEndCallbackBeforeEndTime;
+class InstructionBlock {
+    public List<Object> events;
     private Thread[] threads;
 
-    public AutonomousPath() {
-        events = new ArrayList<>();
+    public InstructionBlock() {
+        events = new ArrayList();
     }
-    public void execute(MotorPair wheels, DcMotor clawMotor, Servo clawServo, Runnable onComplete, double speedMultiplier) {
-        long currentTime = 0;
+    protected void execute(MotorPair wheels, DcMotor clawMotor, Servo clawServo, Runnable onComplete, double speedMultiplier, long timeOffset) {
+        long currentTime = timeOffset;
 
         threads = new Thread[events.size()];
 
         for(int i = 0; i < events.size(); i++) {
-            Instruction instruction = events.get(i);
-            currentTime += instruction.delayTime;
+            Object _instruction = events.get(i);
+            if(_instruction instanceof Instruction) {
+                Instruction instruction = (Instruction) _instruction;
+                currentTime += instruction.delayTime;
 
-            final long currentThreadDelay = currentTime;
-            final double mult = speedMultiplier;
+                final long currentThreadDelay = currentTime;
+                final double mult = speedMultiplier;
 
-            Thread thread = new Thread(() -> {
-                try {
-                    Thread.sleep((long)(currentThreadDelay / mult));
-                    executeInstruction(
-                            instruction,
-                            wheels,
-                            clawMotor,
-                            clawServo,
-                            speedMultiplier
-                    );
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-            thread.start();
+                Thread thread = new Thread(() -> {
+                    try {
+                        Thread.sleep((long) (currentThreadDelay / mult));
+                        executeInstruction(
+                                instruction,
+                                wheels,
+                                clawMotor,
+                                clawServo,
+                                speedMultiplier
+                        );
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+                thread.start();
 
-            threads[i] = thread;
+                threads[i] = thread;
+            } else if(_instruction instanceof IfBranch) {
+                IfBranch branch = (IfBranch) _instruction;
+                InstructionBlock block = branch.decide();
+                block.execute(wheels, clawMotor, clawServo, onComplete, speedMultiplier, currentTime);
+            }
         }
 
         final long totalTime = currentTime;
@@ -68,16 +100,6 @@ public class AutonomousPath {
                 e.printStackTrace();
             }
             onComplete.run();
-        }).start();
-
-        final long finalTime = executeBeforeEndCallbackBeforeEndTime;
-        new Thread(() -> {
-            try {
-                Thread.sleep(30 * 1000 - finalTime);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            beforeEndCallback.run();
         }).start();
     }
 
@@ -113,6 +135,9 @@ public class AutonomousPath {
         }
     }
 
+    public void ifBranch(Supplier<Boolean> decider, Consumer<InstructionBlock> ifTrue, Consumer<InstructionBlock> ifFalse) {
+        events.add(new IfBranch(decider, ifTrue, ifFalse));
+    }
     public void scheduleMove(double counts, long delayTime) {
         events.add(new Instruction(AutonomousInstruction.MOVE_FORWARD, counts, delayTime));
     }
@@ -130,6 +155,26 @@ public class AutonomousPath {
     }
     public void scheduleRightTurn(double counts, long delayTime) {
         events.add(new Instruction(AutonomousInstruction.TURN_RIGHT, counts, delayTime));
+    }
+}
+
+public class AutonomousPath extends InstructionBlock {
+    private long executeBeforeEndCallbackBeforeEndTime;
+    private Runnable beforeEndCallback;
+
+    public void execute(MotorPair wheels, DcMotor clawMotor, Servo clawServo, Runnable onComplete, double speedMultiplier) {
+        super.execute(wheels, clawMotor, clawServo, onComplete, speedMultiplier, 0);
+
+
+        final long finalTime = executeBeforeEndCallbackBeforeEndTime;
+        new Thread(() -> {
+            try {
+                Thread.sleep(30 * 1000 - finalTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            beforeEndCallback.run();
+        }).start();
     }
 
     public void onBeforeEnd(Runnable callback, long timeBeforeEnd) {
