@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.ColorReader;
 import org.firstinspires.ftc.teamcode.Maps;
 import org.firstinspires.ftc.teamcode.MotorPair;
 
-@Autonomous(name = "Cone on medium pole (left)", group = "Sequenced Autonomous")
+@Autonomous(name = "Color sensor test", group = "Testing")
 public class ColorSensorTest extends OpMode {
     private final AutonomousPath path = new AutonomousPath();
     private MotorPair motors;
