@@ -4,22 +4,17 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous(name = "Autonomous Control (backup)", group = "Iterative Opmode")
 @Disabled
 public class BackupAutonomousControl extends OpMode {
     private MotorPair motors;
-    private DcMotor liftMotor;
-    private Servo liftClaw;
 
 
     @Override
     public void init() {
-        motors = new MotorPair(
-            hardwareMap.get(DcMotor.class, "left_drive"),
-            hardwareMap.get(DcMotor.class, "right_drive")
-        );
+        HardwareGetter.get(hardwareMap);
+        motors = HardwareGetter.motors;
     }
 
     @Override

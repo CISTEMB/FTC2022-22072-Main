@@ -30,8 +30,6 @@ public class ColorSensorTest extends OpMode {
         liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
         liftClaw = hardwareMap.get(Servo.class, "claw_grip");
 
-        colorReader = new ColorReader(hardwareMap.get(RevColorSensorV3.class, "color_sensor"));
-
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.setAutoClear(false);

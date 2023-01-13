@@ -5,19 +5,19 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoController;
 
 @TeleOp(name="Claw Controller", group = "Iterative Opmode")
 @Disabled
 public class ClawController extends OpMode {
 
     private DcMotor liftMotor = null;
-    private Servo clawServo = null;
+    private Servo liftClaw = null;
 
     @Override
     public void init() {
-        liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
-        clawServo = hardwareMap.get(Servo.class, "claw_grip");
+        HardwareGetter.get(hardwareMap);
+        liftMotor = HardwareGetter.liftMotor;
+        liftClaw = HardwareGetter.liftClaw;
 //        ServoController.
 
         liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -43,9 +43,9 @@ public class ClawController extends OpMode {
 
 
         if(gamepad1.a) {
-            clawServo.setPosition(1.3d);
+            liftClaw.setPosition(1.3d);
         } else {
-            clawServo.setPosition(0.5d);
+            liftClaw.setPosition(0.5d);
         }
     }
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 class Instruction {
@@ -161,6 +162,25 @@ class InstructionBlock {
 public class AutonomousPath extends InstructionBlock {
     private long executeBeforeEndCallbackBeforeEndTime;
     private Runnable beforeEndCallback;
+
+    public static void scheduleAllMove(double counts, long delayTime, AutonomousPath ...paths) {
+        for(AutonomousPath path : paths) path.scheduleMove(counts, delayTime);
+    }
+    public static void scheduleAllClawMove(double counts, long delayTime, AutonomousPath ...paths) {
+        for(AutonomousPath path : paths) path.scheduleClawMove(counts, delayTime);
+    }
+    public static void scheduleAllClawGrab(long delayTime, AutonomousPath ...paths) {
+        for(AutonomousPath path : paths) path.scheduleClawGrab(delayTime);
+    }
+    public static void scheduleAllClawRelease(long delayTime, AutonomousPath ...paths) {
+        for(AutonomousPath path : paths) path.scheduleClawRelease(delayTime);
+    }
+    public static void scheduleAllLeftTurn(double counts, long delayTime, AutonomousPath ...paths) {
+        for(AutonomousPath path : paths) path.scheduleLeftTurn(counts, delayTime);
+    }
+    public static void scheduleAllRightTurn(double counts, long delayTime, AutonomousPath ...paths) {
+        for(AutonomousPath path : paths) path.scheduleRightTurn(counts, delayTime);
+    }
 
     public void execute(MotorPair wheels, DcMotor clawMotor, Servo clawServo, Runnable onComplete, double speedMultiplier) {
         super.execute(wheels, clawMotor, clawServo, onComplete, speedMultiplier, 0);

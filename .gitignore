@@ -4,6 +4,9 @@
 *.ap_
 *.aab
 
+# who knows what this file is
+*.hprof
+
 !libs/*.aar
 
 # Files for the ART/Dalvik VM

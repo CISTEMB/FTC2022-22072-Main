@@ -2,9 +2,12 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.HardwareGetter;
+import org.firstinspires.ftc.teamcode.MotorPair;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -12,17 +15,24 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name = "Webcam April Tag Test", group = "Testing")
-public class WebcamTest extends LinearOpMode {
+@Autonomous(name = "Autonomous Right Start", group = "Sequenced Autonomous")
+public class AutonomousRightStart extends LinearOpMode {
+    private final AutonomousPath path = new AutonomousPath();
+
     private static final int ID_TAG_OF_INTEREST = 4;
     AprilTagDetection tagOfInterest = null;
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
+    private MotorPair motors;
+    private DcMotor liftMotor;
+    private Servo liftClaw;
+    private ArrayList<Thread> threads;
+
 
     static final double FEET_PER_METER = 3.28084;
-    static final int CODE_FOR_ZONE_ONE = 0;
-    static final int CODE_FOR_ZONE_TWO = 3;
-    static final int CODE_FOR_ZONE_THREE = 4;
+    static final int CODE_FOR_ZONE_ONE = 22;
+    static final int CODE_FOR_ZONE_TWO = 137;
+    static final int CODE_FOR_ZONE_THREE = 364;
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -46,6 +56,14 @@ public class WebcamTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        HardwareGetter.get(hardwareMap);
+
+        motors = HardwareGetter.motors;
+        liftMotor = HardwareGetter.liftMotor;
+        liftClaw = HardwareGetter.liftClaw;
+
+        threads = new ArrayList<>();
+
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -148,6 +166,7 @@ public class WebcamTest extends LinearOpMode {
         /* Actually do something useful */
         if(tagOfInterest == null)
         {
+            telemetry.addLine("Driving to zone 2 -- no tag detected");
             /*
              * Insert your autonomous code here, presumably running some default configuration
              * since the tag was never sighted during INIT
@@ -155,6 +174,8 @@ public class WebcamTest extends LinearOpMode {
         }
         else
         {
+
+            telemetry.addLine("Tag found, switching on " + tagOfInterest.id);
             /*
              * Insert your autonomous code here, probably using the tag pose to decide your configuration.
              */
@@ -176,15 +197,43 @@ public class WebcamTest extends LinearOpMode {
     }
 
     void driveToZoneOne() {
-
+        telemetry.addLine("Driving to zone 1");
+        //drive forward 2 feet
+        motors.setSpeed(0.40);
+        motors.moveCounts(1400, 1400);
+        sleep(3000);
+        //turn left 90 degrees
+        motors.setSpeed(0.15);
+        motors.moveCounts(555, -555);
+        sleep(3000);
+        // reverse for 20 inches
+        motors.setSpeed(0.40);
+        motors.moveCounts(-1200, -1200);
+        sleep(3000);
     }
 
     void driveToZoneTwo() {
-
+        telemetry.addLine("Driving to zone 2");
+        //drive forward for 2 feet
+        motors.setSpeed(0.40);
+        motors.moveCounts(1400, 1400);
+        sleep(3000);
     }
 
     void driveToZoneThree() {
-
+        telemetry.addLine("Driving to zone 3");
+        motors.setSpeed(0.40);
+        //drive forward 2 feet
+        motors.moveCounts(1380, 1380);
+        sleep(3000);
+        //turn left 90 degrees
+        motors.setSpeed(0.15);
+        motors.moveCounts(555, -555);
+        sleep(3000);
+        //move forwards 20 inches
+        motors.setSpeed(0.40);
+        motors.moveCounts(1180, 1180);
+        sleep(3000);
     }
 
     void tagToTelemetry(AprilTagDetection detection)

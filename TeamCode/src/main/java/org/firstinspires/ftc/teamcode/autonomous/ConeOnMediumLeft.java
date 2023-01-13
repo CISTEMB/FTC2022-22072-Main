@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.HardwareGetter;
 import org.firstinspires.ftc.teamcode.MotorPair;
 
 @Autonomous(name = "Cone on medium pole (right)", group = "Sequenced Autonomous")
@@ -17,14 +17,10 @@ public class ConeOnMediumLeft extends OpMode {
 
     @Override
     public void init() {
-        motors = new MotorPair(
-                hardwareMap.get(DcMotor.class, "left_drive"),
-                hardwareMap.get(DcMotor.class, "right_drive")
-        );
-        liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
-        liftClaw = hardwareMap.get(Servo.class, "claw_grip");
-
-        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        HardwareGetter.get(hardwareMap);
+        motors = HardwareGetter.motors;
+        liftMotor = HardwareGetter.liftMotor;
+        liftClaw = HardwareGetter.liftClaw;
 
         telemetry.setAutoClear(false);
 

@@ -10,12 +10,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ClawDebug extends OpMode {
 
     private DcMotor liftMotor = null;
-    private Servo clawServo = null;
+    private Servo liftClaw = null;
 
     @Override
     public void init() {
-        liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
-        clawServo = hardwareMap.get(Servo.class, "claw_grip");
+        HardwareGetter.get(hardwareMap);
+        liftMotor = HardwareGetter.liftMotor;
+        liftClaw = HardwareGetter.liftClaw;
 
         liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -25,6 +26,6 @@ public class ClawDebug extends OpMode {
     public void loop() {
         liftMotor.setPower(-gamepad1.left_stick_y);
 
-        clawServo.setPosition(gamepad1.a ? 1 : 0.85);
+        liftClaw.setPosition(gamepad1.a ? 1 : 0.85);
     }
 }

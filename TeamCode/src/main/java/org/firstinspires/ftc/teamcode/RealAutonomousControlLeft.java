@@ -16,12 +16,10 @@ public class RealAutonomousControlLeft extends OpMode {
 
     @Override
     public void init() {
-        motors = new MotorPair(
-            hardwareMap.get(DcMotor.class, "left_drive"),
-            hardwareMap.get(DcMotor.class, "right_drive")
-        );
-        liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
-        liftClaw = hardwareMap.get(Servo.class, "claw_grip");
+        HardwareGetter.get(hardwareMap);
+        motors = HardwareGetter.motors;
+        liftMotor = HardwareGetter.liftMotor;
+        liftClaw = HardwareGetter.liftClaw;
 
         telemetry.setAutoClear(false);
     }

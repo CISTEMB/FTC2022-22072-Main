@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp(name="Debug Control", group="Iterative Opmode")
 @Disabled
@@ -13,11 +12,8 @@ public class DebugControl extends OpMode {
 
     @Override
     public void init() {
-//        Get references to the external motors
-        motors = new MotorPair(
-                hardwareMap.get(DcMotor.class, "left_drive"),
-                hardwareMap.get(DcMotor.class, "right_drive")
-        );
+        HardwareGetter.get(hardwareMap);
+        motors = HardwareGetter.motors;
     }
 
     @Override

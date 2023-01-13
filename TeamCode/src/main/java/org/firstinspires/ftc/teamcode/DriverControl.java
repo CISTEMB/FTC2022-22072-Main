@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -29,7 +28,7 @@ public class DriverControl extends OpMode {
     private final int flipCounts = 1100;
 
     private DcMotor liftMotor = null;
-    private Servo clawServo = null;
+    private Servo liftClaw = null;
     private TouchSensor resetSwitch = null;
 
     private boolean hasReset = false;
@@ -41,14 +40,12 @@ public class DriverControl extends OpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-//        Get references to the external motors
-        motors = new MotorPair(
-                hardwareMap.get(DcMotor.class, "left_drive"),
-                hardwareMap.get(DcMotor.class, "right_drive")
-        );
-        resetSwitch = hardwareMap.get(RevTouchSensor.class, "reset_switch");
-        liftMotor = hardwareMap.get(DcMotor.class, "claw_lift");
-        clawServo = hardwareMap.get(Servo.class, "claw_grip");
+        HardwareGetter.get(hardwareMap);
+        motors = HardwareGetter.motors;
+        liftMotor = HardwareGetter.liftMotor;
+        liftClaw = HardwareGetter.liftClaw;
+        resetSwitch = HardwareGetter.resetSwitch;
+
         controller = new GamepadRobotController(motors);
 
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -65,8 +62,8 @@ public class DriverControl extends OpMode {
         motors.setSpeed(0.0d, 0.0d);
         motors.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        clawOpen.on("switchTrue", () -> clawServo.setPosition(0.85));
-        clawOpen.on("switchFalse", () -> clawServo.setPosition(1));
+        clawOpen.on("switchTrue", () -> liftClaw.setPosition(0.85));
+        clawOpen.on("switchFalse", () -> liftClaw.setPosition(1));
         turnAround.on("switch", () -> flip());
 
         liftMotor.setPower(0.5);
@@ -79,7 +76,7 @@ public class DriverControl extends OpMode {
 
         if(runtime.milliseconds() < 1000) {
             telemetry.addLine("Lifting claw for more leverage... ("+runtime.milliseconds()+")");
-            clawServo.setPosition(0.85d);
+            liftClaw.setPosition(0.85d);
             return;
         }
         if (!hasReset) {
